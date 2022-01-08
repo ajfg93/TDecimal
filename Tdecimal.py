@@ -1,8 +1,10 @@
+from typing import Union, Tuple
+
 class TDecimal:
     # imitation of: decimal.getcontext().prec = 28
     precision = 5
 
-    def __init__(self, num, decimal_point_length: int = 0):
+    def __init__(self, num: Union[int, str], decimal_point_length: int = 0) -> None:
         # Let's only process strings for now
         # num could be str or int
         if isinstance(num, int):
@@ -18,7 +20,7 @@ class TDecimal:
                 self.decimal_point_length = len(num) - decimal_point_index - 1
                 self.int_part = int(num.replace('.', ''))
 
-    def __add__(self, other: 'TDecimal'):
+    def __add__(self, other: 'TDecimal') -> 'TDecimal':
         # e.g. 123.45 + 2.135
         # 下面这样+就错了
         # 12345
@@ -50,7 +52,7 @@ class TDecimal:
             dec_pt_len
         )
 
-    def round_precision(self, d_result: int, dec_pt_len: int):
+    def round_precision(self, d_result: int, dec_pt_len: int) -> Tuple[int, int]:
         # Dec('1.31') + Dec('1.216111') = Decimal('2.53')
         # 1310000 + 1216111 = 2526111
         # 输入是 d_result = 2526111, dec_pt_len = 6
@@ -69,7 +71,7 @@ class TDecimal:
         new_d_result = new_d_result if d_result_sign else -new_d_result
         return new_d_result, new_dec_pt_len
 
-    def __sub__(self, other: 'TDecimal'):
+    def __sub__(self, other: 'TDecimal') -> 'TDecimal':
         return self.__add__(
             TDecimal(
                 -other.int_part,
@@ -77,7 +79,7 @@ class TDecimal:
             )
         )
 
-    def __mul__(self, other: 'TDecimal'):
+    def __mul__(self, other: 'TDecimal') -> 'TDecimal':
         d_multi = self.int_part * other.int_part
         dec_pt_len = self.decimal_point_length + other.decimal_point_length
         if len(str(d_multi)) > self.precision:
@@ -88,7 +90,7 @@ class TDecimal:
             dec_pt_len
         )
 
-    def find_pattern(self, num_str: str):
+    def find_pattern(self, num_str: str) -> Tuple[bool, str]:
         has_pattern = False
         pattern = ''
         for i in range(0, len(num_str) // 2 + 1):
@@ -100,7 +102,7 @@ class TDecimal:
                 break
         return has_pattern, pattern
 
-    def __truediv__(self, other: 'TDecimal'):
+    def __truediv__(self, other: 'TDecimal') -> 'TDecimal':
         d_div = self.int_part / other.int_part
 
         d_div_str = str(d_div)
@@ -136,7 +138,7 @@ class TDecimal:
                 new_dec_pt_len
             )
 
-    def insert_decimal_point(self):
+    def insert_decimal_point(self) -> str:
         if self.int_part == 0:
             return '0'
         int_part_str = str(self.int_part)
@@ -152,7 +154,7 @@ class TDecimal:
                 print_str = int_part_str[:insert_index] + '.' + int_part_str[insert_index:]
             return print_str
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.insert_decimal_point()
 
 
