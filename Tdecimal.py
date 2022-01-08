@@ -82,7 +82,11 @@ class TDecimal:
         return TDecimal(new_d_result, new_dec_pt_len)
 
     def __sub__(self, other: "TDecimal") -> "TDecimal":
-        return self.__add__(TDecimal(-other.int_part, other.decimal_point_length))
+        return self.__add__(-other)
+
+    def __neg__(self):
+        self.int_part = - self.int_part
+        return self
 
     def __mul__(self, other: "TDecimal") -> "TDecimal":
         d_multi = self.int_part * other.int_part
