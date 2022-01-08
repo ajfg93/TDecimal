@@ -30,7 +30,7 @@ class TDecimal:
         #   2135
         # 懂了，那就是先拿一个最大的小数位数
         # 草，为什么这里other没有 智能方法提示，
-        # 有了，先用着，TODO: 晚点回来看下:
+        # 有了，先用着，DONE: 晚点回来看下:
         # https://stackoverflow.com/questions/33533148/how-do-i-type-hint-a-method-with-the-type-of-the-enclosing-class
         max_dec_pt_len = max(self.decimal_point_length, other.decimal_point_length)
         diff = abs(self.decimal_point_length - other.decimal_point_length)
@@ -58,7 +58,8 @@ class TDecimal:
         # 输入是 d_result = 2526111, dec_pt_len = 6
         # 假设 precision = 3
         # 输出需要是 d_result = 253, dec_pt_len = 2
-        # 用 rounding towards -INF 的方式，现实生活算钱也是应该是 rounding towards -INF 吧？ TODO: 需要确认下
+        # 用 rounding towards -INF 的方式，现实生活算钱也是应该是 rounding towards -INF 吧？ DONE: 需要确认下
+        # 现实生活中算钱是 rounding away from 0 的
         # e.g. -1.5 -> -2
         # 负数和 0， 正数和 1
         d_result_sign = 0 if d_result < 0 else 1
