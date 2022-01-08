@@ -55,11 +55,12 @@ class TDecimal:
         # round precision
         # round 要在这里做，而不是在print的地方做
         if len(str(d_sum)) > self.precision:
-            d_sum, dec_pt_len = self._round_precision(d_sum, dec_pt_len)
+            new_num = self._round_precision(TDecimal(d_sum, dec_pt_len))
+        else:
+            new_num = TDecimal(d_sum, dec_pt_len)
+        return new_num
 
-        return TDecimal(d_sum, dec_pt_len)
-
-    def _round_precision(self, d_result: int, dec_pt_len: int) -> Tuple[int, int]:
+    def _round_precision(self, d_num: 'TDecimal') -> 'TDecimal':
         # Dec('1.31') + Dec('1.216111') = Decimal('2.53')
         # 1310000 + 1216111 = 2526111
         # 输入是 d_result = 2526111, dec_pt_len = 6
@@ -69,6 +70,7 @@ class TDecimal:
         # 现实生活中算钱是 rounding away from 0 的
         # e.g. -1.5 -> -2
         # 负数和 0， 正数和 1
+        d_result, dec_pt_len = d_num.int_part, d_num.decimal_point_length
         d_result_sign = 0 if d_result < 0 else 1
         d_result_str = str(d_result).strip("-")
         new_dec_pt_len = self.precision - (len(d_result_str) - dec_pt_len)
@@ -77,7 +79,7 @@ class TDecimal:
         else:
             new_d_result = int(d_result_str[: self.precision])
         new_d_result = new_d_result if d_result_sign else -new_d_result
-        return new_d_result, new_dec_pt_len
+        return TDecimal(new_d_result, new_dec_pt_len)
 
     def __sub__(self, other: "TDecimal") -> "TDecimal":
         return self.__add__(TDecimal(-other.int_part, other.decimal_point_length))
@@ -86,9 +88,10 @@ class TDecimal:
         d_multi = self.int_part * other.int_part
         dec_pt_len = self.decimal_point_length + other.decimal_point_length
         if len(str(d_multi)) > self.precision:
-            d_multi, dec_pt_len = self._round_precision(d_multi, dec_pt_len)
-
-        return TDecimal(d_multi, dec_pt_len)
+            new_num = self._round_precision(TDecimal(d_multi, dec_pt_len))
+        else:
+            new_num = TDecimal(d_multi, dec_pt_len)
+        return new_num
 
     @staticmethod
     def _find_pattern(num_str: str) -> Tuple[bool, str]:
@@ -133,8 +136,8 @@ class TDecimal:
             else:
                 dec_pt_len = len(final_p) - len(prefix)
 
-            new_d_div, new_dec_pt_len = self._round_precision(int(final_p), dec_pt_len)
-            return TDecimal(new_d_div, new_dec_pt_len)
+            new_num = self._round_precision(TDecimal(int(final_p), dec_pt_len))
+            return new_num
 
     def _insert_decimal_point(self) -> str:
         if self.int_part == 0:
