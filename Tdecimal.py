@@ -1,5 +1,6 @@
 from typing import Union, Tuple
 
+
 class TDecimal:
     # imitation of: decimal.getcontext().prec = 28
     precision = 5
@@ -11,16 +12,16 @@ class TDecimal:
             self.int_part = int(num)
             self.decimal_point_length = decimal_point_length
         else:
-            decimal_point_index = num.find('.')
+            decimal_point_index = num.find(".")
             if decimal_point_index == -1:
                 self.int_part = int(num)
                 self.decimal_point_length = 0
             else:
                 # 小数点位数
                 self.decimal_point_length = len(num) - decimal_point_index - 1
-                self.int_part = int(num.replace('.', ''))
+                self.int_part = int(num.replace(".", ""))
 
-    def __add__(self, other: 'TDecimal') -> 'TDecimal':
+    def __add__(self, other: "TDecimal") -> "TDecimal":
         # e.g. 123.45 + 2.135
         # 下面这样+就错了
         # 12345
@@ -32,7 +33,6 @@ class TDecimal:
         # 草，为什么这里other没有 智能方法提示，
         # 有了，先用着，DONE: 晚点回来看下:
         # https://stackoverflow.com/questions/33533148/how-do-i-type-hint-a-method-with-the-type-of-the-enclosing-class
-        max_dec_pt_len = max(self.decimal_point_length, other.decimal_point_length)
         diff = abs(self.decimal_point_length - other.decimal_point_length)
 
         if self.decimal_point_length >= other.decimal_point_length:
@@ -47,10 +47,7 @@ class TDecimal:
         if len(str(d_sum)) > self.precision:
             d_sum, dec_pt_len = self.round_precision(d_sum, dec_pt_len)
 
-        return TDecimal(
-            d_sum,
-            dec_pt_len
-        )
+        return TDecimal(d_sum, dec_pt_len)
 
     def round_precision(self, d_result: int, dec_pt_len: int) -> Tuple[int, int]:
         # Dec('1.31') + Dec('1.216111') = Decimal('2.53')
@@ -63,39 +60,32 @@ class TDecimal:
         # e.g. -1.5 -> -2
         # 负数和 0， 正数和 1
         d_result_sign = 0 if d_result < 0 else 1
-        d_result_str = str(d_result).strip('-')
+        d_result_str = str(d_result).strip("-")
         new_dec_pt_len = self.precision - (len(d_result_str) - dec_pt_len)
         if int(d_result_str[self.precision]) >= 5:
-            new_d_result = int(d_result_str[:self.precision]) + 1
+            new_d_result = int(d_result_str[: self.precision]) + 1
         else:
-            new_d_result = int(d_result_str[:self.precision])
+            new_d_result = int(d_result_str[: self.precision])
         new_d_result = new_d_result if d_result_sign else -new_d_result
         return new_d_result, new_dec_pt_len
 
-    def __sub__(self, other: 'TDecimal') -> 'TDecimal':
-        return self.__add__(
-            TDecimal(
-                -other.int_part,
-                other.decimal_point_length
-            )
-        )
+    def __sub__(self, other: "TDecimal") -> "TDecimal":
+        return self.__add__(TDecimal(-other.int_part, other.decimal_point_length))
 
-    def __mul__(self, other: 'TDecimal') -> 'TDecimal':
+    def __mul__(self, other: "TDecimal") -> "TDecimal":
         d_multi = self.int_part * other.int_part
         dec_pt_len = self.decimal_point_length + other.decimal_point_length
         if len(str(d_multi)) > self.precision:
             d_multi, dec_pt_len = self.round_precision(d_multi, dec_pt_len)
 
-        return TDecimal(
-            d_multi,
-            dec_pt_len
-        )
+        return TDecimal(d_multi, dec_pt_len)
 
+    @staticmethod
     def find_pattern(self, num_str: str) -> Tuple[bool, str]:
         has_pattern = False
-        pattern = ''
+        pattern = ""
         for i in range(0, len(num_str) // 2 + 1):
-            p = num_str[:i+1]
+            p = num_str[: i + 1]
             num_str_list = num_str.split(p)
             if num_str_list[0] == num_str_list[1]:
                 pattern = p
@@ -103,16 +93,16 @@ class TDecimal:
                 break
         return has_pattern, pattern
 
-    def __truediv__(self, other: 'TDecimal') -> 'TDecimal':
+    def __truediv__(self, other: "TDecimal") -> "TDecimal":
         d_div = self.int_part / other.int_part
 
         d_div_str = str(d_div)
 
-        prefix, suffix = d_div_str.split('.')
-        less_than_zero = True if prefix == '0' else False
+        prefix, suffix = d_div_str.split(".")
+        less_than_zero = True if prefix == "0" else False
         zero_count_in_suffix = 0
         for c in suffix:
-            if c == '0':
+            if c == "0":
                 zero_count_in_suffix += 1
             else:
                 break
@@ -126,7 +116,7 @@ class TDecimal:
             p = pattern
             while len(p) <= self.precision:
                 p = p + pattern
-            final_p = p[0:self.precision + 1]
+            final_p = p[0: self.precision + 1]
             if less_than_zero:
                 dec_pt_len = len(final_p) + zero_count_in_suffix
 
@@ -134,32 +124,36 @@ class TDecimal:
                 dec_pt_len = len(final_p) - len(prefix)
 
             new_d_div, new_dec_pt_len = self.round_precision(int(final_p), dec_pt_len)
-            return TDecimal(
-                new_d_div,
-                new_dec_pt_len
-            )
+            return TDecimal(new_d_div, new_dec_pt_len)
 
     def insert_decimal_point(self) -> str:
         if self.int_part == 0:
-            return '0'
+            return "0"
         int_part_str = str(self.int_part)
         if self.decimal_point_length == 0:
             return int_part_str
         else:
             if len(int_part_str) > self.decimal_point_length:
                 insert_index = len(int_part_str) - self.decimal_point_length
-                print_str = int_part_str[:insert_index] + '.' + int_part_str[insert_index:]
+                print_str = (
+                    int_part_str[:insert_index] + "." + int_part_str[insert_index:]
+                )
             else:
-                int_part_str = '0' * (abs(len(int_part_str) - self.decimal_point_length) + 1) + int_part_str
+                int_part_str = (
+                    "0" * (abs(len(int_part_str) - self.decimal_point_length) + 1)
+                    + int_part_str
+                )
                 insert_index = len(int_part_str) - self.decimal_point_length
-                print_str = int_part_str[:insert_index] + '.' + int_part_str[insert_index:]
+                print_str = (
+                    int_part_str[:insert_index] + "." + int_part_str[insert_index:]
+                )
             return print_str
 
     def __str__(self) -> str:
         return self.insert_decimal_point()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     # print(TDecimal('1.320000000008989'))
     # print(TDecimal('0.00001'))
@@ -169,7 +163,6 @@ if __name__ == '__main__':
     # print(TDecimal('0.1') + TDecimal('-0.1'))
     # print(TDecimal('999.526111') + TDecimal('0.1'))
     # print(TDecimal('1.1') - TDecimal('2.2'))
-
 
     # print(TDecimal('1.5') * TDecimal('1.62123'))
     # print(TDecimal('1.5') * TDecimal('1.62623'))
