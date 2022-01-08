@@ -1,17 +1,23 @@
 from typing import Union, Tuple
+from TDecimalException import (
+    UnknownNumberTypeException, WrongArgumentException)
 
 
 class TDecimal:
     # imitation of: decimal.getcontext().prec = 28
-    precision = 5
+    precision: int = 5
 
-    def __init__(self, num: Union[int, str], decimal_point_length: int = 0) -> None:
+    def __init__(self, num: Union[int, str], decimal_point_length: int = None) -> None:
         # Let's only process strings for now
         # num could be str or int
         if isinstance(num, int):
-            self.int_part = int(num)
+            self.int_part = num
             self.decimal_point_length = decimal_point_length
-        else:
+        elif isinstance(num, str):
+            if decimal_point_length:
+                raise WrongArgumentException(
+                    "decimal_point_length is not allowed when `num` is str type"
+                )
             decimal_point_index = num.find(".")
             if decimal_point_index == -1:
                 self.int_part = int(num)
@@ -20,6 +26,10 @@ class TDecimal:
                 # 小数点位数
                 self.decimal_point_length = len(num) - decimal_point_index - 1
                 self.int_part = int(num.replace(".", ""))
+        else:
+            raise UnknownNumberTypeException(
+                f"TDecimal only accepts `int` or `str`, num is {type(num)}"
+            )
 
     def __add__(self, other: "TDecimal") -> "TDecimal":
         # e.g. 123.45 + 2.135
@@ -45,11 +55,11 @@ class TDecimal:
         # round precision
         # round 要在这里做，而不是在print的地方做
         if len(str(d_sum)) > self.precision:
-            d_sum, dec_pt_len = self.round_precision(d_sum, dec_pt_len)
+            d_sum, dec_pt_len = self._round_precision(d_sum, dec_pt_len)
 
         return TDecimal(d_sum, dec_pt_len)
 
-    def round_precision(self, d_result: int, dec_pt_len: int) -> Tuple[int, int]:
+    def _round_precision(self, d_result: int, dec_pt_len: int) -> Tuple[int, int]:
         # Dec('1.31') + Dec('1.216111') = Decimal('2.53')
         # 1310000 + 1216111 = 2526111
         # 输入是 d_result = 2526111, dec_pt_len = 6
@@ -76,12 +86,12 @@ class TDecimal:
         d_multi = self.int_part * other.int_part
         dec_pt_len = self.decimal_point_length + other.decimal_point_length
         if len(str(d_multi)) > self.precision:
-            d_multi, dec_pt_len = self.round_precision(d_multi, dec_pt_len)
+            d_multi, dec_pt_len = self._round_precision(d_multi, dec_pt_len)
 
         return TDecimal(d_multi, dec_pt_len)
 
     @staticmethod
-    def find_pattern(self, num_str: str) -> Tuple[bool, str]:
+    def _find_pattern(num_str: str) -> Tuple[bool, str]:
         has_pattern = False
         pattern = ""
         for i in range(0, len(num_str) // 2 + 1):
@@ -108,7 +118,7 @@ class TDecimal:
                 break
 
         num_str = str(int(prefix + suffix))
-        has_pattern, pattern = self.find_pattern(num_str)
+        has_pattern, pattern = self._find_pattern(num_str)
 
         if not has_pattern:
             return TDecimal(d_div_str)
@@ -116,17 +126,17 @@ class TDecimal:
             p = pattern
             while len(p) <= self.precision:
                 p = p + pattern
-            final_p = p[0: self.precision + 1]
+            final_p = p[0 : self.precision + 1]
             if less_than_zero:
                 dec_pt_len = len(final_p) + zero_count_in_suffix
 
             else:
                 dec_pt_len = len(final_p) - len(prefix)
 
-            new_d_div, new_dec_pt_len = self.round_precision(int(final_p), dec_pt_len)
+            new_d_div, new_dec_pt_len = self._round_precision(int(final_p), dec_pt_len)
             return TDecimal(new_d_div, new_dec_pt_len)
 
-    def insert_decimal_point(self) -> str:
+    def _insert_decimal_point(self) -> str:
         if self.int_part == 0:
             return "0"
         int_part_str = str(self.int_part)
@@ -150,7 +160,7 @@ class TDecimal:
             return print_str
 
     def __str__(self) -> str:
-        return self.insert_decimal_point()
+        return self._insert_decimal_point()
 
 
 if __name__ == "__main__":
@@ -167,4 +177,5 @@ if __name__ == "__main__":
     # print(TDecimal('1.5') * TDecimal('1.62123'))
     # print(TDecimal('1.5') * TDecimal('1.62623'))
     # print(TDecimal('1236123') / TDecimal('1283182'))
+    print(TDecimal('1')/ TDecimal('3'))
     pass

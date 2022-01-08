@@ -46,13 +46,13 @@ class MyTestCase(unittest.TestCase):
     def test_divide(self):
         TDecimal.precision = 28
         self.assertEqual(
-            str(TDecimal(1) / TDecimal(3)), "0.3333333333333333333333333333"
+            str(TDecimal('1') / TDecimal('3')), "0.3333333333333333333333333333"
         )
         self.assertEqual(
-            str(TDecimal(1) / TDecimal(7)), "0.1428571428571428571428571429"
+            str(TDecimal('1') / TDecimal('7')), "0.1428571428571428571428571429"
         )
         self.assertEqual(
-            str(TDecimal(100) / TDecimal(7)), "14.28571428571428571428571429"
+            str(TDecimal('100') / TDecimal('7')), "14.28571428571428571428571429"
         )
         # Failed to get the correct precision
         # Divide as float for now
@@ -60,7 +60,7 @@ class MyTestCase(unittest.TestCase):
             str(TDecimal("1236123") / TDecimal("1283182")), "0.9633263247146546"
         )
         TDecimal.precision = 6
-        self.assertEqual(str(TDecimal(1) / TDecimal(300)), "0.00333333")
+        self.assertEqual(str(TDecimal('1') / TDecimal('300')), "0.00333333")
 
     def tearDown(self):
         # print('tearDown...')
