@@ -157,14 +157,18 @@ class TDecimal:
 
 
 if __name__ == '__main__':
+
     # print(TDecimal('1.320000000008989'))
+    # print(TDecimal('0.00001'))
     # print(TDecimal('1.1') + TDecimal('2.2'))
     # print(TDecimal('123.45') + TDecimal('2.135'))
-    # print(TDecimal('1.1') - TDecimal('2.2'))
-    # print(TDecimal('0.00001'))
     # print(TDecimal('1.31') + TDecimal('1.216111'))
-    # print(TDecimal('999.526111') + TDecimal('0.1'))
     # print(TDecimal('0.1') + TDecimal('-0.1'))
+    # print(TDecimal('999.526111') + TDecimal('0.1'))
+    # print(TDecimal('1.1') - TDecimal('2.2'))
+
+
     # print(TDecimal('1.5') * TDecimal('1.62123'))
     # print(TDecimal('1.5') * TDecimal('1.62623'))
-    print(TDecimal('1236123') / TDecimal('1283182'))
+    # print(TDecimal('1236123') / TDecimal('1283182'))
+    pass

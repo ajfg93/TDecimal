@@ -1,15 +1,52 @@
 import unittest
+from Tdecimal import TDecimal
 
 
 class MyTestCase(unittest.TestCase):
     def setUp(self):
-        print('setUp...')
+        # print('setUp...')
+        pass
 
-    def test_something(self):
-        self.assertEqual(True, True)
+    def test_print(self):
+        self.assertEqual(str(TDecimal('1.320000000008989')), '1.320000000008989')
+        self.assertEqual(str(TDecimal('0.00001')), '0.00001')
+
+    def test_addtion(self):
+        TDecimal.precision = 6
+        self.assertEqual(str(TDecimal('1.1') + TDecimal('2.2')), '3.3')
+        self.assertEqual(str(TDecimal('123.45') + TDecimal('2.135')), '125.585')
+        TDecimal.precision = 5
+        self.assertEqual(str(TDecimal('123.45') + TDecimal('2.135')), '125.59')
+        TDecimal.precision = 10
+        self.assertEqual(str(TDecimal('1.31') + TDecimal('1.216111')), '2.526111')
+        TDecimal.precision = 3
+        self.assertEqual(str(TDecimal('1.31') + TDecimal('1.216111')), '2.53')
+        self.assertEqual(str(TDecimal('0.1') + TDecimal('-0.1')), '0')
+        TDecimal.precision = 20
+        self.assertEqual(str(TDecimal('999.526111') + TDecimal('0.1')), '999.626111')
+        TDecimal.precision = 3
+        self.assertEqual(str(TDecimal('999.526111') + TDecimal('0.1')), '1000')
+        TDecimal.precision = 5
+        self.assertEqual(str(TDecimal('999.526111') + TDecimal('0.1')), '999.63')
+
+    def test_multiple(self):
+        TDecimal.precision = 20
+        self.assertEqual(str(TDecimal('1.5') * TDecimal('1.62123')), '2.431845')
+        TDecimal.precision = 2
+        self.assertEqual(str(TDecimal('1.5') * TDecimal('1.62123')), '2.4')
+        TDecimal.precision = 3
+        self.assertEqual(str(TDecimal('1.5') * TDecimal('1.62623')), '2.44')
+
+    def test_divide(self):
+        TDecimal.precision = 28
+        self.assertEqual(str(TDecimal(1) / TDecimal(3)), '0.3333333333333333333333333333')
+        self.assertEqual(str(TDecimal(1) / TDecimal(7)), '0.1428571428571428571428571429')
+
+        # self.assertEqual(str(TDecimal('1236123') / TDecimal('1283182'))) # Failed to get the correct precision
 
     def tearDown(self):
-        print('tearDown...')
+        # print('tearDown...')
+        pass
 
 
 if __name__ == '__main__':
