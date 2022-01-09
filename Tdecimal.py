@@ -18,14 +18,15 @@ class TDecimal:
                 raise WrongArgumentException(
                     "decimal_point_length is not allowed when `num` is str type"
                 )
-            decimal_point_index = num.find(".")
-            if decimal_point_index == -1:
-                self.int_part = int(num)
-                self.decimal_point_length = 0
             else:
-                # 小数点位数
-                self.decimal_point_length = len(num) - decimal_point_index - 1
-                self.int_part = int(num.replace(".", ""))
+                decimal_point_index = num.find(".")
+                if decimal_point_index == -1:
+                    self.int_part = int(num)
+                    self.decimal_point_length = 0
+                else:
+                    # 计算有几位小数点
+                    self.decimal_point_length = len(num) - decimal_point_index - 1
+                    self.int_part = int(num.replace(".", ""))
         else:
             raise UnknownNumberTypeException(
                 f"TDecimal only accepts `int` or `str`, num is {type(num)}"
@@ -39,10 +40,7 @@ class TDecimal:
         # 得是
         # 123450
         #   2135
-        # 懂了，那就是先拿一个最大的小数位数
-        # 草，为什么这里other没有 智能方法提示，
-        # 有了，先用着，DONE: 晚点回来看下:
-        # https://stackoverflow.com/questions/33533148/how-do-i-type-hint-a-method-with-the-type-of-the-enclosing-class
+        # 那就是先拿一个最大的小数位数
         diff = abs(self.decimal_point_length - other.decimal_point_length)
 
         if self.decimal_point_length >= other.decimal_point_length:
@@ -52,34 +50,59 @@ class TDecimal:
             d_sum = self.int_part * (10 ** diff) + other.int_part
             dec_pt_len = other.decimal_point_length
 
-        # round precision
-        # round 要在这里做，而不是在print的地方做
-        if len(str(d_sum)) > self.precision:
-            new_num = self._round_precision(TDecimal(d_sum, dec_pt_len))
-        else:
-            new_num = TDecimal(d_sum, dec_pt_len)
+        new_num = self._round_precision(TDecimal(d_sum, dec_pt_len))
         return new_num
 
+    @staticmethod
+    def _cal_num_length(num: int) -> int:
+        num_len = 1
+        divisor = 10
+        while num // divisor > 0:
+            num_len += 1
+            divisor *= 10
+        return num_len
+
+    @staticmethod
+    def _round_int(num_int: int, precision: int, num_length: int) -> int:
+        # My Algorithm: 1234567, precision: 5
+        # 1234567 // (7-5) ** 10 -> 1234567 // 100 = 12345
+        # 123456 % 100 = 56, 56 // (7-5-1) ** 10 = 5
+        # if 5 >= 5, 1234 + 1; else 1234
+        divisor = 10 ** (num_length - precision)
+        new_num_int = num_int // divisor
+        round_pos_num = (num_int % divisor) // (10 ** (num_length - precision - 1))
+        if abs(round_pos_num) >= 5:
+            if num_int > 0:
+                new_num_int += 1
+            else:
+                new_num_int -= 1
+        return new_num_int
+
     def _round_precision(self, d_num: 'TDecimal') -> 'TDecimal':
-        # Dec('1.31') + Dec('1.216111') = Decimal('2.53')
-        # 1310000 + 1216111 = 2526111
-        # 输入是 d_result = 2526111, dec_pt_len = 6
-        # 假设 precision = 3
-        # 输出需要是 d_result = 253, dec_pt_len = 2
-        # 用 rounding towards -INF 的方式，现实生活算钱也是应该是 rounding towards -INF 吧？ DONE: 需要确认下
-        # 现实生活中算钱是 rounding away from 0 的
+        # 用 rounding away from 0 的方法，现实生活中算钱是 rounding away from 0 的
         # e.g. -1.5 -> -2
-        # 负数和 0， 正数和 1
-        d_result, dec_pt_len = d_num.int_part, d_num.decimal_point_length
-        d_result_sign = 0 if d_result < 0 else 1
-        d_result_str = str(d_result).strip("-")
-        new_dec_pt_len = self.precision - (len(d_result_str) - dec_pt_len)
-        if int(d_result_str[self.precision]) >= 5:
-            new_d_result = int(d_result_str[: self.precision]) + 1
+        # num_length 计算 self.int_part 有多少位数
+        if d_num.int_part == 0:
+            return d_num
         else:
-            new_d_result = int(d_result_str[: self.precision])
-        new_d_result = new_d_result if d_result_sign else -new_d_result
-        return TDecimal(new_d_result, new_dec_pt_len)
+            num_length = self._cal_num_length(d_num.int_part)
+            if num_length <= self.precision:
+                return d_num
+            else:
+                new_int_part = self._round_int(d_num.int_part, self.precision, num_length)
+                if d_num.int_part / 10 ** d_num.decimal_point_length > 0:
+                    # 实际数字是 > 0的
+                    if self.precision <= num_length - d_num.decimal_point_length:
+                        new_dec_pt_len = 0
+                    else:
+                        new_dec_pt_len = self.precision - (num_length - d_num.decimal_point_length)
+
+                else:
+                    # 实际数字是 < 0 的，0.xxx
+                    new_dec_pt_len = d_num.decimal_point_length - num_length + d_num.precision
+
+                new_num = TDecimal(new_int_part, new_dec_pt_len)
+                return new_num
 
     def __sub__(self, other: "TDecimal") -> "TDecimal":
         return self.__add__(-other)
@@ -91,10 +114,7 @@ class TDecimal:
     def __mul__(self, other: "TDecimal") -> "TDecimal":
         d_multi = self.int_part * other.int_part
         dec_pt_len = self.decimal_point_length + other.decimal_point_length
-        if len(str(d_multi)) > self.precision:
-            new_num = self._round_precision(TDecimal(d_multi, dec_pt_len))
-        else:
-            new_num = TDecimal(d_multi, dec_pt_len)
+        new_num = self._round_precision(TDecimal(d_multi, dec_pt_len))
         return new_num
 
     @staticmethod
@@ -175,7 +195,7 @@ if __name__ == "__main__":
     # print(TDecimal('1.320000000008989'))
     # print(TDecimal('0.00001'))
     # print(TDecimal('1.1') + TDecimal('2.2'))
-    # print(TDecimal('123.45') + TDecimal('2.135'))
+    print(TDecimal('123.45') + TDecimal('2.135'))
     # print(TDecimal('1.31') + TDecimal('1.216111'))
     # print(TDecimal('0.1') + TDecimal('-0.1'))
     # print(TDecimal('999.526111') + TDecimal('0.1'))
@@ -184,5 +204,8 @@ if __name__ == "__main__":
     # print(TDecimal('1.5') * TDecimal('1.62123'))
     # print(TDecimal('1.5') * TDecimal('1.62623'))
     # print(TDecimal('1236123') / TDecimal('1283182'))
-    print(TDecimal('1')/ TDecimal('3'))
+    # print(TDecimal('1')/ TDecimal('3'))
+    # a = TDecimal('1.1')
+    # print(a.int_part)
+    # print(a.decimal_point_length)
     pass

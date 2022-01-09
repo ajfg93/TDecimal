@@ -42,6 +42,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(str(TDecimal("1.5") * TDecimal("1.62123")), "2.4")
         TDecimal.precision = 3
         self.assertEqual(str(TDecimal("1.5") * TDecimal("1.62623")), "2.44")
+        self.assertEqual(str(TDecimal("0.003267") * TDecimal("1")), "0.00327")
 
     def test_divide(self):
         TDecimal.precision = 28
