@@ -5,3 +5,10 @@ class UnknownNumberTypeException(Exception):
 
 class WrongArgumentException(Exception):
     pass
+
+
+class DivisorIsZeroException(Exception):
+    pass
+
+class ShouldntBeHereException(Exception):
+    pass

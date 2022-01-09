@@ -58,7 +58,7 @@ class MyTestCase(unittest.TestCase):
         # Failed to get the correct precision
         # Divide as float for now
         self.assertEqual(
-            str(TDecimal("1236123") / TDecimal("1283182")), "0.9633263247146546"
+            str(TDecimal("1236123") / TDecimal("1283182")), "0.9633263247146546631732677048"
         )
         TDecimal.precision = 6
         self.assertEqual(str(TDecimal('1') / TDecimal('300')), "0.00333333")
