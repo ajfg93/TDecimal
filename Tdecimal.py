@@ -108,11 +108,11 @@ class TDecimal:
     def __sub__(self, other: "TDecimal") -> "TDecimal":
         return self.__add__(-other)
 
-    def __neg__(self):
+    def __neg__(self) -> 'TDecimal':
         self.int_part = - self.int_part
         return self
 
-    def __eq__(self, other: Union[str, int, 'TDecimal']) -> bool:
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, str):
             return self.__str__() == other
         elif isinstance(other, int):
@@ -127,14 +127,12 @@ class TDecimal:
                 right_int = other.int_part
             return left_int == right_int
         else:
-            raise ComparisonException("__eq__ accepts a `str`, `int` or another `TDecimal`"
-                                      f"as a compare candiate, {type(other)} is not"
-                                      "allowed")
+            return NotImplemented
 
-    def __ne__(self, other: Union[str, int, 'TDecimal']) -> bool:
+    def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
 
-    def __lt__(self, other: Union[str, int, 'TDecimal']) -> bool:
+    def __lt__(self, other: object) -> bool:
         if isinstance(other, str):
             return self < TDecimal(other)
         elif isinstance(other, int):
@@ -149,14 +147,12 @@ class TDecimal:
                 right_int = other.int_part
             return left_int < right_int
         else:
-            raise ComparisonException("__lt__ accepts a `str`, `int` or another `TDecimal`"
-                                      f"as a compare candiate, {type(other)} is not"
-                                      "allowed")
+            return NotImplemented
 
-    def __le__(self, other: Union[str, int, 'TDecimal']) -> bool:
+    def __le__(self, other: object) -> bool:
         return self < other or self == other
 
-    def __gt__(self, other: Union[str, int, 'TDecimal']) -> bool:
+    def __gt__(self, other: object) -> bool:
         if isinstance(other, str):
             return self > TDecimal(other)
         elif isinstance(other, int):
@@ -171,11 +167,9 @@ class TDecimal:
                 right_int = other.int_part
             return left_int > right_int
         else:
-            raise ComparisonException("__gt__ accepts a `str`, `int` or another `TDecimal`"
-                                      f"as a compare candiate, {type(other)} is not"
-                                      "allowed")
+            return NotImplemented
 
-    def __ge__(self, other: Union[str, int, 'TDecimal']) -> bool:
+    def __ge__(self, other: object) -> bool:
         return self > other or self == other
 
     def __mul__(self, other: "TDecimal") -> "TDecimal":
@@ -198,7 +192,7 @@ class TDecimal:
         return has_pattern, pattern
 
     @staticmethod
-    def _div_get_quotient_and_round(dividend: int, divisor: int, precision: int) -> 'Tdecimal':
+    def _div_get_quotient_and_round(dividend: int, divisor: int, precision: int) -> 'TDecimal':
         # quotient 位数要比 precision 多1位
         if divisor == 0:
             raise DivisorIsZeroException("Divisor can't be 0 ")
