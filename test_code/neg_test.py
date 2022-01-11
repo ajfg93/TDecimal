@@ -16,6 +16,10 @@ class Foo:
         print('__neg__')
         self.num = - self.num
 
+    def __eq__(self, other):
+        return 3
+
+
 
 a, b = Foo(1), Foo(3)
 print(a + b)  # 4

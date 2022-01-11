@@ -1,7 +1,7 @@
 from typing import Union, Tuple
 from TDecimalException import (
     UnknownNumberTypeException, WrongArgumentException, DivisorIsZeroException,
-    ShouldntBeHereException)
+    ShouldntBeHereException, ComparisonException)
 
 
 class TDecimal:
@@ -112,6 +112,72 @@ class TDecimal:
         self.int_part = - self.int_part
         return self
 
+    def __eq__(self, other: Union[str, int, 'TDecimal']) -> bool:
+        if isinstance(other, str):
+            return self.__str__() == other
+        elif isinstance(other, int):
+            return self.int_part == other
+        elif isinstance(other, TDecimal):
+            diff = abs(self.decimal_point_length - other.decimal_point_length)
+            if self.decimal_point_length >= other.decimal_point_length:
+                right_int = other.int_part * 10 ** diff
+                left_int = self.int_part
+            else:
+                left_int = self.int_part * 10 ** diff
+                right_int = other.int_part
+            return left_int == right_int
+        else:
+            raise ComparisonException("__eq__ accepts a `str`, `int` or another `TDecimal`"
+                                      f"as a compare candiate, {type(other)} is not"
+                                      "allowed")
+
+    def __ne__(self, other: Union[str, int, 'TDecimal']) -> bool:
+        return not self.__eq__(other)
+
+    def __lt__(self, other: Union[str, int, 'TDecimal']) -> bool:
+        if isinstance(other, str):
+            return self < TDecimal(other)
+        elif isinstance(other, int):
+            return self.int_part < other
+        elif isinstance(other, TDecimal):
+            diff = abs(self.decimal_point_length - other.decimal_point_length)
+            if self.decimal_point_length >= other.decimal_point_length:
+                right_int = other.int_part * 10 ** diff
+                left_int = self.int_part
+            else:
+                left_int = self.int_part * 10 ** diff
+                right_int = other.int_part
+            return left_int < right_int
+        else:
+            raise ComparisonException("__lt__ accepts a `str`, `int` or another `TDecimal`"
+                                      f"as a compare candiate, {type(other)} is not"
+                                      "allowed")
+
+    def __le__(self, other: Union[str, int, 'TDecimal']) -> bool:
+        return self < other or self == other
+
+    def __gt__(self, other: Union[str, int, 'TDecimal']) -> bool:
+        if isinstance(other, str):
+            return self > TDecimal(other)
+        elif isinstance(other, int):
+            return self.int_part > other
+        elif isinstance(other, TDecimal):
+            diff = abs(self.decimal_point_length - other.decimal_point_length)
+            if self.decimal_point_length >= other.decimal_point_length:
+                right_int = other.int_part * 10 ** diff
+                left_int = self.int_part
+            else:
+                left_int = self.int_part * 10 ** diff
+                right_int = other.int_part
+            return left_int > right_int
+        else:
+            raise ComparisonException("__gt__ accepts a `str`, `int` or another `TDecimal`"
+                                      f"as a compare candiate, {type(other)} is not"
+                                      "allowed")
+
+    def __ge__(self, other: Union[str, int, 'TDecimal']) -> bool:
+        return self > other or self == other
+
     def __mul__(self, other: "TDecimal") -> "TDecimal":
         d_multi = self.int_part * other.int_part
         dec_pt_len = self.decimal_point_length + other.decimal_point_length
@@ -220,7 +286,7 @@ if __name__ == "__main__":
     # print(TDecimal('1.320000000008989'))
     # print(TDecimal('0.00001'))
     # print(TDecimal('1.1') + TDecimal('2.2'))
-    print(TDecimal('123.45') + TDecimal('2.135'))
+    # print(TDecimal('123.45') + TDecimal('2.135'))
     # print(TDecimal('1.31') + TDecimal('1.216111'))
     # print(TDecimal('0.1') + TDecimal('-0.1'))
     # print(TDecimal('999.526111') + TDecimal('0.1'))
@@ -228,9 +294,10 @@ if __name__ == "__main__":
 
     # print(TDecimal('1.5') * TDecimal('1.62123'))
     # print(TDecimal('1.5') * TDecimal('1.62623'))
-    print(TDecimal('1236123') / TDecimal('1283182'))
-    print(TDecimal('20')/ TDecimal('3'))
+    # print(TDecimal('1236123') / TDecimal('1283182'))
+    # print(TDecimal('20')/ TDecimal('3'))
     # a = TDecimal('1.1')
     # print(a.int_part)
     # print(a.decimal_point_length)
+    # print(TDecimal('1.2') >= '1.1')
     pass

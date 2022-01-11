@@ -12,3 +12,6 @@ class DivisorIsZeroException(Exception):
 
 class ShouldntBeHereException(Exception):
     pass
+
+class ComparisonException(Exception):
+    pass
