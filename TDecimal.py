@@ -1,7 +1,7 @@
 from typing import Union, Tuple
 from TDecimalException import (
     UnknownNumberTypeException, WrongArgumentException, DivisorIsZeroException,
-    ShouldntBeHereException, ComparisonException)
+    ShouldntBeHereException)
 
 
 class TDecimal:
@@ -13,7 +13,7 @@ class TDecimal:
         # num could be str or int
         if isinstance(num, int):
             self.int_part = num
-            self.decimal_point_length = decimal_point_length
+            self.decimal_point_length = decimal_point_length if decimal_point_length else 0
         elif isinstance(num, str):
             if decimal_point_length:
                 raise WrongArgumentException(
@@ -58,7 +58,8 @@ class TDecimal:
     def _cal_num_length(num: int) -> int:
         num_len = 1
         divisor = 10
-        while num // divisor > 0:
+        abs_num = abs(num)
+        while int(abs_num / divisor) > 0:
             num_len += 1
             divisor *= 10
         return num_len
@@ -66,12 +67,15 @@ class TDecimal:
     @staticmethod
     def _round_int(num_int: int, precision: int, num_length: int) -> int:
         # My Algorithm: 1234567, precision: 5
-        # 1234567 // (7-5) ** 10 -> 1234567 // 100 = 12345
-        # 123456 % 100 = 56, 56 // (7-5-1) ** 10 = 5
+        # 1234567 / (7-5) ** 10 -> 1234567 / 100 = 12345
+        # 123456 % 100 = 56, 56 / (7-5-1) ** 10 = 5
+        # use int( a / b), not a // b, the latter is a floor div
         # if 5 >= 5, 1234 + 1; else 1234
         divisor = 10 ** (num_length - precision)
-        new_num_int = num_int // divisor
-        round_pos_num = (num_int % divisor) // (10 ** (num_length - precision - 1))
+        new_num_int = int(num_int / divisor)
+        # -12 % 10 = 8, 12 % -10 = -8
+        # 12 % 10 = 2
+        round_pos_num = int((abs(num_int) % divisor) / (10 ** (num_length - precision - 1)))
         if abs(round_pos_num) >= 5:
             if num_int > 0:
                 new_num_int += 1
@@ -116,7 +120,7 @@ class TDecimal:
         if isinstance(other, str):
             return self.__str__() == other
         elif isinstance(other, int):
-            return self.int_part == other
+            return self.int_part == other * 10 ** self.decimal_point_length
         elif isinstance(other, TDecimal):
             diff = abs(self.decimal_point_length - other.decimal_point_length)
             if self.decimal_point_length >= other.decimal_point_length:
@@ -136,7 +140,7 @@ class TDecimal:
         if isinstance(other, str):
             return self < TDecimal(other)
         elif isinstance(other, int):
-            return self.int_part < other
+            return self.int_part < other * 10 ** self.decimal_point_length
         elif isinstance(other, TDecimal):
             diff = abs(self.decimal_point_length - other.decimal_point_length)
             if self.decimal_point_length >= other.decimal_point_length:
@@ -156,7 +160,7 @@ class TDecimal:
         if isinstance(other, str):
             return self > TDecimal(other)
         elif isinstance(other, int):
-            return self.int_part > other
+            return self.int_part > other * 10 ** self.decimal_point_length
         elif isinstance(other, TDecimal):
             diff = abs(self.decimal_point_length - other.decimal_point_length)
             if self.decimal_point_length >= other.decimal_point_length:
@@ -179,17 +183,20 @@ class TDecimal:
         return new_num
 
     @staticmethod
-    def _find_pattern(num_str: str) -> Tuple[bool, str]:
-        has_pattern = False
-        pattern = ""
-        for i in range(0, len(num_str) // 2 + 1):
-            p = num_str[: i + 1]
-            num_str_list = num_str.split(p)
-            if num_str_list[0] == num_str_list[1]:
-                pattern = p
-                has_pattern = True
-                break
-        return has_pattern, pattern
+    def _div_by_hand(dividend: int, divisor: int) -> int:
+        # Why need this ?
+        # Because `int(33333333333333333333333333333 / 10) == 3333333333333333560877121536`
+        if dividend < divisor:
+            return 0
+        elif dividend == divisor:
+            return 1
+        else:
+            quotient = 0
+            while dividend - divisor > 0:
+                quotient += 1
+                dividend -= divisor
+
+            return quotient
 
     @staticmethod
     def _div_get_quotient_and_round(dividend: int, divisor: int, precision: int) -> 'TDecimal':
@@ -199,51 +206,87 @@ class TDecimal:
         if dividend == 0:
             return TDecimal(0, 0)
 
+        # 这里可以用% 跟dividend 正负 没有关系
         if dividend % divisor == 0:
             return TDecimal(dividend // divisor, 0)
 
         # 除不尽
-        # My Algorithm is fucking Genius ;P !
-        # I am so happy I made it !
         dec_pt_len = 0
-        tmp_quotient = quotient = dividend // divisor
+        tmp_quotient = quotient = TDecimal._div_by_hand(dividend, divisor)
         quotient_length = TDecimal._cal_num_length(quotient)
         while quotient_length < (precision + 1):
             dividend = dividend - (tmp_quotient * divisor)
-            tmp_quotient = dividend // divisor
+            tmp_quotient = int(dividend / divisor)
             while tmp_quotient == 0:
                 dividend = dividend * 10
-                if quotient_length < precision:
-                    # quotient_length == precision 不处理
-                    # quotient_length < (precision + 1) , 是为了多拿1位 tmp_quotient
-                    dec_pt_len += 1
-                    quotient = quotient * 10
-                tmp_quotient = dividend // divisor
-
-            # When it's out of the above loop,
-            # tmp_quotient would not be 0 and have a number
-            if quotient_length < precision:
-                quotient += tmp_quotient
+                tmp_quotient = int(dividend / divisor)
+                dec_pt_len += 1
+                quotient = quotient * 10
                 quotient_length = TDecimal._cal_num_length(quotient)
+                if quotient_length == (precision + 1):
+                    break
+
+            # When it's out of the above loop, g
+            # tmp_quotient would not be 0 and have a number
+            quotient += tmp_quotient
+
+        # ==debug
+        # print(quotient)
+        # exit(1)
+        f_quotient = int(quotient / 10)
+        f_dec_pt_len = dec_pt_len - 1
+        round_pos_num = abs(quotient) % 10
+
+        if round_pos_num >= 5:
+            if f_quotient < 0:
+                f_quotient -= 1
             else:
-                # Do rounding here, rouding away from 0
-                if tmp_quotient >= 5:
-                    if quotient < 0:
-                        quotient -= 1
-                    elif quotient > 0:
-                        quotient += 1
-                    else:
-                        raise ShouldntBeHereException(
-                            "Normally, you should never get to this code brand."
-                            "Go fuck the author's tutor if you get this Exception")
-                # exit No.2
-                break
-        return TDecimal(quotient, dec_pt_len)
+                f_quotient += 1
+
+        # ===
+        # while quotient_length < (precision + 1):
+        #     dividend = dividend - (tmp_quotient * divisor)
+        #     tmp_quotient = int(dividend / divisor)
+        #     while tmp_quotient == 0:
+        #         dividend = dividend * 10
+        #         tmp_quotient = int(dividend / divisor)
+        #         if quotient_length < precision:
+        #             # <del>quotient_length == precision 不处理</del> , 需要处理
+        #             # quotient_length < (precision + 1) , 是为了多拿1位 tmp_quotient
+        #             dec_pt_len += 1
+        #             quotient = quotient * 10
+        #             quotient_length = TDecimal._cal_num_length(quotient)
+        #             if quotient_length == precision:
+        #                 # quotient_length == precision
+        #                 break
+        #
+        #     # When it's out of the above loop,
+        #     # tmp_quotient would not be 0 and have a number
+        #     if quotient_length <= precision:
+        #         quotient += tmp_quotient
+        #         quotient_length = TDecimal._cal_num_length(quotient)
+        #     else:
+        #         # Do rounding here, rouding away from 0
+        #         if abs(tmp_quotient) >= 5:
+        #             if quotient < 0:
+        #                 quotient -= 1
+        #             elif quotient > 0:
+        #                 quotient += 1
+        #             else:
+        #                 raise ShouldntBeHereException(
+        #                     "Normally, you should never get to this code brand."
+        #                     "Go fuck the author's tutor if you get this Exception")
+        #         # exit No.2
+        #         break
+        return TDecimal(f_quotient, f_dec_pt_len)
 
     def __truediv__(self, other: "TDecimal") -> "TDecimal":
         dividend, divisor = self.int_part, other.int_part
-        max_dec_len = max(self.decimal_point_length, other.decimal_point_length)
-        dividend, divisor = map(lambda x: x * 10 ** max_dec_len, [dividend, divisor])
+        dec_len_diff = abs(self.decimal_point_length - other.decimal_point_length)
+        if self.decimal_point_length > other.decimal_point_length:
+            divisor *= 10 ** dec_len_diff
+        else:
+            dividend *= 10 ** dec_len_diff
 
         new_num = self._div_get_quotient_and_round(dividend, divisor, self.precision)
         return new_num
@@ -251,10 +294,11 @@ class TDecimal:
     def _insert_decimal_point(self) -> str:
         if self.int_part == 0:
             return "0"
-        int_part_str = str(self.int_part)
         if self.decimal_point_length == 0:
-            return int_part_str
+            return str(self.int_part)
         else:
+            less_than_zero = 1 if self.int_part < 0 else 0
+            int_part_str = str(self.int_part).strip('-')
             if len(int_part_str) > self.decimal_point_length:
                 insert_index = len(int_part_str) - self.decimal_point_length
                 print_str = (
@@ -269,10 +313,15 @@ class TDecimal:
                 print_str = (
                     int_part_str[:insert_index] + "." + int_part_str[insert_index:]
                 )
+            if less_than_zero:
+                print_str = '-' + print_str
             return print_str
 
     def __str__(self) -> str:
         return self._insert_decimal_point()
+
+    def __repr__(self) -> str:
+        return self.__str__()
 
 
 if __name__ == "__main__":
@@ -294,4 +343,17 @@ if __name__ == "__main__":
     # print(a.int_part)
     # print(a.decimal_point_length)
     # print(TDecimal('1.2') >= '1.1')
+    # print(TDecimal('1234.0') == 1234)
+    # TDecimal.precision = 6
+    # print(TDecimal("-1236123") / TDecimal("1283182"))
+    # print(TDecimal("-123"))
+    # print(TDecimal("1.1") - TDecimal("2.2"))
+    # print(TDecimal("-1236123") / TDecimal("1283182"))
+    # print(TDecimal("-1.23455") - TDecimal("0.00001"))
+    # print(TDecimal("1.5") * TDecimal("1.62623"))
+    # print(TDecimal("10") / TDecimal("0.3"))
+    # print(TDecimal("1") / TDecimal("9999"))
+    TDecimal.precision = 28
+    print(TDecimal('1') / TDecimal('3'))
+    # print(TDecimal('0.999') / TDecimal('1'))
     pass

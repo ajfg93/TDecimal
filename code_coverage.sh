@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-coverage run -m uniitest TdecimalUnitTest.py
-coverage report -m
+coverage run -m unittest TDecimalUnitTest.py && coverage report -m && coverage html
+
