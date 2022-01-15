@@ -1,7 +1,7 @@
 from typing import Union, Tuple
 from TDecimalException import (
-    UnknownNumberTypeException, WrongArgumentException, DivisorIsZeroException,
-    ShouldntBeHereException)
+    UnknownNumberTypeException, WrongArgumentException, DivisorIsZeroException
+)
 
 
 class TDecimal:
@@ -59,7 +59,7 @@ class TDecimal:
         num_len = 1
         divisor = 10
         abs_num = abs(num)
-        while int(abs_num / divisor) > 0:
+        while abs_num // divisor > 0:
             num_len += 1
             divisor *= 10
         return num_len
@@ -69,14 +69,16 @@ class TDecimal:
         # My Algorithm: 1234567, precision: 5
         # 1234567 / (7-5) ** 10 -> 1234567 / 100 = 12345
         # 123456 % 100 = 56, 56 / (7-5-1) ** 10 = 5
-        # use int( a / b), not a // b, the latter is a floor div
+        # <del>use int( a / b), not a // b, the latter is a floor div</del>
+        # Use `truncate_div` for now
         # if 5 >= 5, 1234 + 1; else 1234
         divisor = 10 ** (num_length - precision)
-        new_num_int = int(num_int / divisor)
+        new_num_int = TDecimal.truncate_div(num_int, divisor)
         # -12 % 10 = 8, 12 % -10 = -8
         # 12 % 10 = 2
-        round_pos_num = int((abs(num_int) % divisor) / (10 ** (num_length - precision - 1)))
-        if abs(round_pos_num) >= 5:
+        round_pos_num = TDecimal.truncate_div(abs(num_int) % divisor, 10 ** (num_length - precision - 1))
+
+        if round_pos_num >= 5:
             if num_int > 0:
                 new_num_int += 1
             else:
@@ -183,20 +185,10 @@ class TDecimal:
         return new_num
 
     @staticmethod
-    def _div_by_hand(dividend: int, divisor: int) -> int:
-        # Why need this ?
-        # Because `int(33333333333333333333333333333 / 10) == 3333333333333333560877121536`
-        if dividend < divisor:
-            return 0
-        elif dividend == divisor:
-            return 1
-        else:
-            quotient = 0
-            while dividend - divisor > 0:
-                quotient += 1
-                dividend -= divisor
-
-            return quotient
+    def truncate_div(dividend: int, divisor: int) -> int:
+        if (dividend < 0 < divisor) or (dividend > 0 > divisor):
+            return - (abs(dividend) // abs(divisor))
+        return dividend // divisor
 
     @staticmethod
     def _div_get_quotient_and_round(dividend: int, divisor: int, precision: int) -> 'TDecimal':
@@ -212,14 +204,14 @@ class TDecimal:
 
         # 除不尽
         dec_pt_len = 0
-        tmp_quotient = quotient = TDecimal._div_by_hand(dividend, divisor)
+        tmp_quotient = quotient = TDecimal.truncate_div(dividend, divisor)
         quotient_length = TDecimal._cal_num_length(quotient)
         while quotient_length < (precision + 1):
             dividend = dividend - (tmp_quotient * divisor)
-            tmp_quotient = int(dividend / divisor)
+            tmp_quotient = TDecimal.truncate_div(dividend, divisor)
             while tmp_quotient == 0:
                 dividend = dividend * 10
-                tmp_quotient = int(dividend / divisor)
+                tmp_quotient = TDecimal.truncate_div(dividend, divisor)
                 dec_pt_len += 1
                 quotient = quotient * 10
                 quotient_length = TDecimal._cal_num_length(quotient)
@@ -230,10 +222,7 @@ class TDecimal:
             # tmp_quotient would not be 0 and have a number
             quotient += tmp_quotient
 
-        # ==debug
-        # print(quotient)
-        # exit(1)
-        f_quotient = int(quotient / 10)
+        f_quotient = TDecimal.truncate_div(quotient, 10)
         f_dec_pt_len = dec_pt_len - 1
         round_pos_num = abs(quotient) % 10
 
@@ -243,41 +232,6 @@ class TDecimal:
             else:
                 f_quotient += 1
 
-        # ===
-        # while quotient_length < (precision + 1):
-        #     dividend = dividend - (tmp_quotient * divisor)
-        #     tmp_quotient = int(dividend / divisor)
-        #     while tmp_quotient == 0:
-        #         dividend = dividend * 10
-        #         tmp_quotient = int(dividend / divisor)
-        #         if quotient_length < precision:
-        #             # <del>quotient_length == precision 不处理</del> , 需要处理
-        #             # quotient_length < (precision + 1) , 是为了多拿1位 tmp_quotient
-        #             dec_pt_len += 1
-        #             quotient = quotient * 10
-        #             quotient_length = TDecimal._cal_num_length(quotient)
-        #             if quotient_length == precision:
-        #                 # quotient_length == precision
-        #                 break
-        #
-        #     # When it's out of the above loop,
-        #     # tmp_quotient would not be 0 and have a number
-        #     if quotient_length <= precision:
-        #         quotient += tmp_quotient
-        #         quotient_length = TDecimal._cal_num_length(quotient)
-        #     else:
-        #         # Do rounding here, rouding away from 0
-        #         if abs(tmp_quotient) >= 5:
-        #             if quotient < 0:
-        #                 quotient -= 1
-        #             elif quotient > 0:
-        #                 quotient += 1
-        #             else:
-        #                 raise ShouldntBeHereException(
-        #                     "Normally, you should never get to this code brand."
-        #                     "Go fuck the author's tutor if you get this Exception")
-        #         # exit No.2
-        #         break
         return TDecimal(f_quotient, f_dec_pt_len)
 
     def __truediv__(self, other: "TDecimal") -> "TDecimal":
@@ -349,11 +303,13 @@ if __name__ == "__main__":
     # print(TDecimal("-123"))
     # print(TDecimal("1.1") - TDecimal("2.2"))
     # print(TDecimal("-1236123") / TDecimal("1283182"))
+    # TDecimal.precision = 5
     # print(TDecimal("-1.23455") - TDecimal("0.00001"))
     # print(TDecimal("1.5") * TDecimal("1.62623"))
     # print(TDecimal("10") / TDecimal("0.3"))
     # print(TDecimal("1") / TDecimal("9999"))
-    TDecimal.precision = 28
-    print(TDecimal('1') / TDecimal('3'))
+    # TDecimal.precision = 28
+    # print(TDecimal('1') / TDecimal('3'))
     # print(TDecimal('0.999') / TDecimal('1'))
+    # print(TDecimal("1.23") / TDecimal("-22.3334"))
     pass

@@ -10,6 +10,3 @@ class WrongArgumentException(Exception):
 class DivisorIsZeroException(Exception):
     pass
 
-
-class ShouldntBeHereException(Exception):
-    pass
