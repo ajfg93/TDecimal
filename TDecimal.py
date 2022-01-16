@@ -25,7 +25,7 @@ class TDecimal:
                     self.int_part = int(num)
                     self.decimal_point_length = 0
                 else:
-                    # 计算有几位小数点
+                    # calculator how many decimal points there are
                     self.decimal_point_length = len(num) - decimal_point_index - 1
                     self.int_part = int(num.replace(".", ""))
         else:
@@ -35,13 +35,13 @@ class TDecimal:
 
     def __add__(self, other: "TDecimal") -> "TDecimal":
         # e.g. 123.45 + 2.135
-        # 下面这样+就错了
+        # Adding like this is wrong:
         # 12345
         #  2135
-        # 得是
+        # should be:
         # 123450
         #   2135
-        # 那就是先拿一个最大的小数位数
+        # which means I need to get a largest decimal point length first
         diff = abs(self.decimal_point_length - other.decimal_point_length)
 
         if self.decimal_point_length >= other.decimal_point_length:
@@ -86,9 +86,10 @@ class TDecimal:
         return new_num_int
 
     def _round_precision(self, d_num: 'TDecimal') -> 'TDecimal':
-        # 用 rounding away from 0 的方法，现实生活中算钱是 rounding away from 0 的
-        # e.g. -1.5 -> -2
-        # num_length 计算 self.int_part 有多少位数
+        # I use rounding away from 0 method, in real life we use rounding away from 0 for money:
+        # e.g. You own me $5.5 (-5.5), we are friends, just give me $5 (-5) back.
+        # e.g. The food is $5.5 (+5.5), let's just make it $6 (+6) for simplicity.
+        # num_length: calculator decimal length of self.int_part
         if d_num.int_part == 0:
             return d_num
         else:
@@ -200,17 +201,16 @@ class TDecimal:
 
     @staticmethod
     def _div_get_quotient_and_round(dividend: int, divisor: int, precision: int) -> 'TDecimal':
-        # quotient 位数要比 precision 多1位
+        # I need: len(quotention) == len(precision + 1)
         if divisor == 0:
             raise DivisorIsZeroException("Divisor can't be 0 ")
         if dividend == 0:
             return TDecimal(0, 0)
 
-        # 这里可以用% 跟dividend 正负 没有关系
         if dividend % divisor == 0:
             return TDecimal(dividend // divisor, 0)
 
-        # 除不尽
+        # If can't not divide exactly
         dec_pt_len = 0
         tmp_quotient = quotient = TDecimal.truncate_div(dividend, divisor)
         quotient_length = TDecimal._cal_num_length(quotient)
