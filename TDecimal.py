@@ -99,14 +99,14 @@ class TDecimal:
             else:
                 new_int_part = self._round_int(d_num.int_part, self.precision, num_length)
                 if d_num.int_part / 10 ** d_num.decimal_point_length > 0:
-                    # 实际数字是 > 0的
+                    # If real num > 0
                     if self.precision <= num_length - d_num.decimal_point_length:
                         new_dec_pt_len = 0
                     else:
                         new_dec_pt_len = self.precision - (num_length - d_num.decimal_point_length)
 
                 else:
-                    # 实际数字是 < 0 的，0.xxx
+                    # If real num < 0, e.g 0.xxxx
                     new_dec_pt_len = d_num.decimal_point_length - num_length + d_num.precision
 
                 new_num = TDecimal(new_int_part, new_dec_pt_len)
