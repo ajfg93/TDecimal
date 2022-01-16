@@ -133,6 +133,14 @@ class TDecimal:
                 right_int = other.int_part
             return left_int == right_int
         else:
+            # `self.assertIsNone(TDecimal('123.45') == 123.45)` is wrong,
+            # I should do `assertFalse`, reason why:
+            # `TDecimal('123.45') == 123.45` eventually delegate to so-called:
+            # "If A’s __eq__() also returned NotImplemented, then the runtime would fall back to the built-in behaviour"
+            # "for equality which is based on object identity (which in CPython, is the object’s address in memory)."
+            # Source https://s16h.medium.com/pythons-notimplemented-type-2d720137bf41
+            # TODO: Try to debug the CPython source code and validate that behavior
+            # If it's `return 1`, then it returns `1`
             return NotImplemented
 
     def __ne__(self, other: object) -> bool:
@@ -312,4 +320,6 @@ if __name__ == "__main__":
     # print(TDecimal('1') / TDecimal('3'))
     # print(TDecimal('0.999') / TDecimal('1'))
     # print(TDecimal("1.23") / TDecimal("-22.3334"))
+    # print(TDecimal('123.45') == 123.45)
+    # print(TDecimal('123.45') < 123.45)
     pass

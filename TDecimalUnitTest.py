@@ -1,8 +1,8 @@
 import unittest
 from TDecimal import TDecimal
 from TDecimalException import (
-    UnknownNumberTypeException, WrongArgumentException, DivisorIsZeroException,
-    ShouldntBeHereException)
+    UnknownNumberTypeException, WrongArgumentException, DivisorIsZeroException
+)
 
 class MyTestCase(unittest.TestCase):
     def setUp(self):
@@ -18,6 +18,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(str(TDecimal("0.00001")), "0.00001")
         self.assertEqual(str(TDecimal("123")), "123")
         self.assertEqual(str(TDecimal("-123")), "-123")
+        self.assertEqual(repr(TDecimal('1.321')), '1.321')
 
     def test_addtion(self):
         TDecimal.precision = 6
@@ -88,10 +89,14 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(
             TDecimal("10") / TDecimal("0.3"), "33.333"
         )
+        self.assertEqual(
+            TDecimal("0.01") / TDecimal("0.3"), "0.033333"
+        )
         TDecimal.precision = 6
         self.assertEqual(
             TDecimal("1") / TDecimal("9999"), "0.000100010"
         )
+
 
     def test_comparison(self):
         self.assertTrue(TDecimal('1.1') == TDecimal('1.1'))
@@ -116,6 +121,11 @@ class MyTestCase(unittest.TestCase):
         self.assertTrue(TDecimal('123.45') <= '123.451')
         self.assertTrue(TDecimal('0') >= -1)
         self.assertTrue(TDecimal('-2') <= 0)
+
+        # self.assertIsNone(TDecimal('123.45') == 123.45)
+        self.assertFalse(TDecimal('123.45') == 123.45)
+        # self.assertFalse(TDecimal('123.45') < 123.45)
+        # self.assertFalse(TDecimal('123.45') > 123.45)
 
     def tearDown(self):
         # print('tearDown...')
