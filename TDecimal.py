@@ -280,7 +280,8 @@ class TDecimal:
             return print_str
 
     def __str__(self) -> str:
-        return self._insert_decimal_point()
+        # return self._insert_decimal_point()
+        return '123'
 
     def __repr__(self) -> str:
         return self.__str__()
