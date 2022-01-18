@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Tuple
 from TDecimalException import (
     UnknownNumberTypeException, WrongArgumentException, DivisorIsZeroException,
     ComparisonTypeNotAllowedException
@@ -126,13 +126,7 @@ class TDecimal:
         elif isinstance(other, int):
             return self.int_part == other * 10 ** self.decimal_point_length
         elif isinstance(other, TDecimal):
-            diff = abs(self.decimal_point_length - other.decimal_point_length)
-            if self.decimal_point_length >= other.decimal_point_length:
-                right_int = other.int_part * 10 ** diff
-                left_int = self.int_part
-            else:
-                left_int = self.int_part * 10 ** diff
-                right_int = other.int_part
+            left_int, right_int = TDecimal._boom_intpart_same_magnitude(self, other)
             return left_int == right_int
         else:
             # `self.assertIsNone(TDecimal('123.45') == 123.45)` is wrong,
@@ -148,19 +142,24 @@ class TDecimal:
     def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
 
+    @staticmethod
+    def _boom_intpart_same_magnitude(left: 'TDecimal', right: 'TDecimal') -> Tuple[int, int]:
+        diff = abs(left.decimal_point_length - right.decimal_point_length)
+        if left.decimal_point_length >= right.decimal_point_length:
+            right_int = right.int_part * 10 ** diff
+            left_int = left.int_part
+        else:
+            left_int = left.int_part * 10 ** diff
+            right_int = right.int_part
+        return left_int, right_int
+
     def __lt__(self, other: object) -> bool:
         if isinstance(other, str):
             return self < TDecimal(other)
         elif isinstance(other, int):
             return self.int_part < other * 10 ** self.decimal_point_length
         elif isinstance(other, TDecimal):
-            diff = abs(self.decimal_point_length - other.decimal_point_length)
-            if self.decimal_point_length >= other.decimal_point_length:
-                right_int = other.int_part * 10 ** diff
-                left_int = self.int_part
-            else:
-                left_int = self.int_part * 10 ** diff
-                right_int = other.int_part
+            left_int, right_int = TDecimal._boom_intpart_same_magnitude(self, other)
             return left_int < right_int
         else:
             raise ComparisonTypeNotAllowedException(
@@ -176,13 +175,7 @@ class TDecimal:
         elif isinstance(other, int):
             return self.int_part > other * 10 ** self.decimal_point_length
         elif isinstance(other, TDecimal):
-            diff = abs(self.decimal_point_length - other.decimal_point_length)
-            if self.decimal_point_length >= other.decimal_point_length:
-                right_int = other.int_part * 10 ** diff
-                left_int = self.int_part
-            else:
-                left_int = self.int_part * 10 ** diff
-                right_int = other.int_part
+            left_int, right_int = TDecimal._boom_intpart_same_magnitude(self, other)
             return left_int > right_int
         else:
             raise ComparisonTypeNotAllowedException(
