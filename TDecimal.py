@@ -28,7 +28,12 @@ class TDecimal:
                 else:
                     # calculator how many decimal points there are
                     self.decimal_point_length = len(num) - decimal_point_index - 1
-                    self.int_part = int(num.replace(".", ""))
+                    try:
+                        self.int_part = int(num.replace(".", ""))
+                    except ValueError:
+                        raise WrongArgumentException(
+                            f"{num} is not a valid number string"
+                        )
         else:
             raise UnknownNumberTypeException(
                 f"TDecimal only accepts `int` or `str`, num is {type(num)}"
@@ -320,4 +325,5 @@ if __name__ == "__main__":
     # print(TDecimal("1.23") / TDecimal("-22.3334"))
     # print(TDecimal('123.45') == 123.45)
     # print(TDecimal('123.45') < 123.45)
+    # print(TDecimal('12.abc'))
     pass
