@@ -1,6 +1,7 @@
-from typing import Union, Tuple
+from typing import Union
 from TDecimalException import (
-    UnknownNumberTypeException, WrongArgumentException, DivisorIsZeroException
+    UnknownNumberTypeException, WrongArgumentException, DivisorIsZeroException,
+    ComparisonTypeNotAllowedException
 )
 
 
@@ -162,10 +163,12 @@ class TDecimal:
                 right_int = other.int_part
             return left_int < right_int
         else:
-            return NotImplemented
+            raise ComparisonTypeNotAllowedException(
+                f"compare with {type(other)} type is not defined."
+            )
 
     def __le__(self, other: object) -> bool:
-        return self < other or self == other
+        return not (self > other)
 
     def __gt__(self, other: object) -> bool:
         if isinstance(other, str):
@@ -182,10 +185,12 @@ class TDecimal:
                 right_int = other.int_part
             return left_int > right_int
         else:
-            return NotImplemented
+            raise ComparisonTypeNotAllowedException(
+                f"compare with {type(other)} type is not defined."
+            )
 
     def __ge__(self, other: object) -> bool:
-        return self > other or self == other
+        return not (self < other)
 
     def __mul__(self, other: "TDecimal") -> "TDecimal":
         d_multi = self.int_part * other.int_part
