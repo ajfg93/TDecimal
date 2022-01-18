@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-mypy --strict Tdecimal.py
+mypy --strict TDecimal.py

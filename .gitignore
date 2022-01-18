@@ -5,3 +5,4 @@ __pycache__/
 .mypy_cache
 htmlcov/
 test_code/
+.python-version
