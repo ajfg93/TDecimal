@@ -31,4 +31,4 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: mypy strict mode lint
       run: |
-        mypy --strict --no-warn-return-any TDecimal.py
+        bash mypy_typecheck.sh

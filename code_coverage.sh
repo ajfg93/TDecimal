@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
 
-coverage run -m unittest TDecimalUnitTest.py && coverage report -m && coverage html
+if [[ "$1" == "no-html-gen" ]];
+then
+  coverage run -m unittest TDecimalUnitTest.py && coverage report -m
+else
+  coverage run -m unittest TDecimalUnitTest.py && coverage report -m && coverage html
+fi
 

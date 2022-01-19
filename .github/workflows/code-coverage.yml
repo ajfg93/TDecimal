@@ -31,4 +31,4 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: code_coverage and unit test
       run: |
-        coverage run -m unittest TDecimalUnitTest.py && coverage report -m
+        bash code_coverage.sh no-html-gen
