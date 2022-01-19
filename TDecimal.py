@@ -1,4 +1,5 @@
 from typing import Union, Tuple
+from types import NotImplementedType
 from TDecimalException import (
     UnknownNumberTypeException, WrongArgumentException, DivisorIsZeroException,
     ComparisonTypeNotAllowedException
@@ -9,7 +10,7 @@ class TDecimal:
     # imitation of: decimal.getcontext().prec = 28
     precision: int = 28
 
-    def __init__(self, num: Union[int, str], decimal_point_length: int = None) -> None:
+    def __init__(self, num: Union[int, str], decimal_point_length: Union[int, None] = None) -> None:
         # Let's only process strings for now
         # num could be str or int
         if isinstance(num, int):
@@ -125,7 +126,7 @@ class TDecimal:
         self.int_part = - self.int_part
         return self
 
-    def __eq__(self, other: object) -> bool:
+    def __eq__(self, other: object) -> Union[bool, NotImplementedType]:
         if isinstance(other, str):
             return self.__str__() == other
         elif isinstance(other, int):
@@ -289,7 +290,7 @@ class TDecimal:
         return self.__str__()
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
 
     # print(TDecimal('1.320000000008989'))
     # print(TDecimal('0.00001'))

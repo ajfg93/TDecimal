@@ -5,6 +5,7 @@ from TDecimalException import (
     ComparisonTypeNotAllowedException
 )
 
+
 class MyTestCase(unittest.TestCase):
     def setUp(self):
         # print('setUp...')
@@ -14,7 +15,6 @@ class MyTestCase(unittest.TestCase):
         self.assertRaises(WrongArgumentException, TDecimal, '3', 2)
         self.assertRaises(WrongArgumentException, TDecimal, '12.3a4')
         self.assertRaises(UnknownNumberTypeException, TDecimal, [1, 2, 3])
-
 
     def test_print(self):
         self.assertEqual(str(TDecimal("1.320000000008989")), "1.320000000008989")
@@ -136,7 +136,7 @@ class MyTestCase(unittest.TestCase):
         pass
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     # unittest.main()
     # print('123')
     pass
