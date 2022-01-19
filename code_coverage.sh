@@ -6,4 +6,3 @@ then
 else
   coverage run -m unittest TDecimalUnitTest.py && coverage report -m && coverage html
 fi
-
