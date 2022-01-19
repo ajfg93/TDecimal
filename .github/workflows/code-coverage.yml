@@ -29,6 +29,6 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install coverage
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: code_coverage and unit test
+    - name: code_coverage and unit test_newline
       run: |
         bash code_coverage.sh no-html-gen

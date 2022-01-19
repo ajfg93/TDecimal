@@ -99,6 +99,9 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(
             TDecimal("1") / TDecimal("9999"), "0.000100010"
         )
+        TDecimal.precision = 28
+        self.assertEqual(TDecimal('1') / TDecimal('10'), '0.1')
+        self.assertEqual(TDecimal('1') / TDecimal('10') * TDecimal('10'), '1.0')
 
     def test_comparison(self):
         self.assertTrue(TDecimal('1.1') == TDecimal('1.1'))

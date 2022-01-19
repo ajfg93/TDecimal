@@ -216,10 +216,14 @@ class TDecimal:
 
         # If can't not divide exactly
         dec_pt_len = 0
+        no_tail = False
         tmp_quotient = quotient = TDecimal.truncate_div(dividend, divisor)
         quotient_length = TDecimal._cal_num_length(quotient)
         while quotient_length < (precision + 1):
             dividend = dividend - (tmp_quotient * divisor)
+            if dividend == 0:
+                no_tail = True
+                break
             tmp_quotient = TDecimal.truncate_div(dividend, divisor)
             while tmp_quotient == 0:
                 dividend = dividend * 10
@@ -234,15 +238,18 @@ class TDecimal:
             # tmp_quotient would not be 0 and have a number
             quotient += tmp_quotient
 
-        f_quotient = TDecimal.truncate_div(quotient, 10)
-        f_dec_pt_len = dec_pt_len - 1
-        round_pos_num = abs(quotient) % 10
+        if no_tail:
+            f_quotient, f_dec_pt_len = quotient, dec_pt_len
+        else:
+            f_quotient = TDecimal.truncate_div(quotient, 10)
+            f_dec_pt_len = dec_pt_len - 1
+            round_pos_num = abs(quotient) % 10
 
-        if round_pos_num >= 5:
-            if f_quotient < 0:
-                f_quotient -= 1
-            else:
-                f_quotient += 1
+            if round_pos_num >= 5:
+                if f_quotient < 0:
+                    f_quotient -= 1
+                else:
+                    f_quotient += 1
 
         return TDecimal(f_quotient, f_dec_pt_len)
 
@@ -327,4 +334,10 @@ if __name__ == "__main__":  # pragma: no cover
     # print(TDecimal('123.45') == 123.45)
     # print(TDecimal('123.45') < 123.45)
     # print(TDecimal('12.abc'))
+    # a = TDecimal('1.30') * TDecimal('1.20')
+    # print(a, a.decimal_point_length)
+    # b = TDecimal('1') / TDecimal('10') * TDecimal('10')
+    # print(b, b.decimal_point_length)
+    # c = TDecimal('1') / TDecimal('10')
+    # print(c, c.decimal_point_length)
     pass
